@@ -51,15 +51,47 @@ cd client && npm run dev
 ```
 Open `http://localhost:5173` in your browser.
 
-## Deployment (Render)
+## Deployment (AWS EC2 / VPS)
 
-This project is configured as a Monolithic Web Service on Render.
+This project is configured with a Multi-stage Dockerfile and a GitHub Actions CI/CD pipeline.
 
+### 1. GitHub Actions (Auto-Build)
 1. Push this repository to GitHub.
-2. Create a new **Web Service** on Render.
-3. Connect your GitHub repository.
-4. Render will automatically detect the `render.yaml` configuration and set up the build (`npm run build` on client) and start commands.
-5. In the Render Dashboard, add your **Environment Variables**:
-   - `DATABASE_URL` (Use Supabase or Neon for a free, persistent PostgreSQL database).
-   - `OPENROUTER_API_KEY`.
-6. Deploy! Your app will serve both the React frontend and Hono backend from the same Render URL.
+2. Go to the **Actions** tab in your repository and wait for the "Docker Image CI" workflow to finish.
+3. Once built, go to your repository's **Packages** on the right sidebar.
+4. Click on the package, go to **Package Settings**, and change the visibility from **Private** to **Public**.
+
+### 2. Deploy to EC2
+SSH into your Ubuntu server and run the following commands:
+
+```bash
+mkdir -p ~/apps/convers
+cd ~/apps/convers
+nano docker-compose.yml
+```
+
+Paste the following configuration (replace `<YOUR-GITHUB-USERNAME>` with your actual username):
+
+```yaml
+version: '3.8'
+
+services:
+  english-companion:
+    image: ghcr.io/<YOUR-GITHUB-USERNAME>/convers:latest
+    container_name: english-companion-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # Use docker host IP if your DB is exposed to host, e.g., 172.17.0.1
+      - DATABASE_URL=postgresql://user:pass@172.17.0.1:5432/convers
+      - OPENROUTER_API_KEY=your_api_key
+```
+
+Save the file and run:
+```bash
+docker-compose pull
+docker-compose up -d
+```
+
+Your app will be running on port 3000!

@@ -14,7 +14,7 @@ WORKDIR /app
 
 # Copy server package.json and install dependencies
 COPY server/package.json ./server/
-COPY server/bun.lockb ./server/
+COPY server/bun.lock ./server/
 RUN cd server && bun install --production
 
 # Copy backend source code
