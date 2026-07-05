@@ -90,8 +90,8 @@ services:
 
 Save the file and run:
 ```bash
-docker-compose pull
-docker-compose up -d
+docker compose pull
+docker compose up -d
 ```
 
 Your app will be running on port 3000!
