@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, useMutation, useQuery } from '@tanstack/react-query';
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, Home, MessageSquare, BookOpen, PenTool, Flag } from 'lucide-react';
 
 const queryClient = new QueryClient();
 
@@ -269,25 +269,25 @@ const ChatInterface = () => {
           )}
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           <select 
             value={modelId} 
             onChange={(e) => setModelId(e.target.value)}
-            className="bg-input border border-border text-foreground text-sm rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
+            className="bg-input border border-border text-foreground text-xs sm:text-sm rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 max-w-[100px] sm:max-w-none"
           >
-            <option value="meta/llama-3.1-8b-instruct">Llama 3.1 8B (Fast)</option>
-            <option value="meta/llama-3.1-70b-instruct">Llama 3.1 70B (Smart)</option>
-            <option value="nvidia/nemotron-4-340b-instruct">Nemotron 340B</option>
+            <option value="meta/llama-3.1-8b-instruct">Llama 8B (Fast)</option>
+            <option value="meta/llama-3.1-70b-instruct">Llama 70B (Smart)</option>
+            <option value="nvidia/nemotron-4-340b-instruct">Nemotron</option>
           </select>
 
           <button
             onClick={() => setIsActive(!isActive)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition text-sm font-medium"
+            className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition text-sm font-medium"
           >
             {isActive ? (
-              <><Pause size={16} /> Pause</>
+              <><Pause size={16} /> <span className="hidden sm:inline">Pause</span></>
             ) : (
-              <><Play size={16} /> Resume</>
+              <><Play size={16} /> <span className="hidden sm:inline">Resume</span></>
             )}
           </button>
           <button
@@ -295,9 +295,9 @@ const ChatInterface = () => {
               setIsActive(false);
               setShowSummaryModal(true);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition text-sm font-medium"
+            className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition text-sm font-medium"
           >
-            Finish
+            <Flag size={16} /> <span className="hidden sm:inline">Finish</span>
           </button>
         </div>
       </div>
@@ -580,16 +580,16 @@ const Vocabulary = () => {
   const sortedData = getSortedData();
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="flex justify-between items-end mb-8">
+    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2 text-foreground">Vocabulary Review</h1>
-          <p className="text-muted-foreground">Words extracted from your conversations.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">Vocabulary Review</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Words extracted from your conversations.</p>
         </div>
         <select 
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
-          className="bg-input border border-border text-foreground text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/50"
+          className="w-full sm:w-auto bg-input border border-border text-foreground text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/50"
         >
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>
@@ -647,11 +647,11 @@ const Journal = () => {
   });
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2 text-foreground">Daily Journal</h1>
-      <p className="text-muted-foreground mb-8">Practice writing without worrying about mistakes.</p>
+    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">Daily Journal</h1>
+      <p className="text-muted-foreground text-sm sm:text-base mb-6 sm:mb-8">Practice writing without worrying about mistakes.</p>
       
-      <div className="border border-border rounded-xl p-6 bg-card flex flex-col gap-4">
+      <div className="border border-border rounded-xl p-4 sm:p-6 bg-card flex flex-col gap-4">
         {isPromptLoading ? (
           <div className="h-6 bg-muted rounded w-1/2 animate-pulse mb-2"></div>
         ) : (
@@ -659,7 +659,7 @@ const Journal = () => {
         )}
         
         <textarea
-          className="w-full h-48 bg-input border border-border rounded-xl p-4 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+          className="w-full h-40 sm:h-48 bg-input border border-border rounded-xl p-4 text-foreground text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
           placeholder="Start writing here..."
           value={content}
           onChange={e => setContent(e.target.value)}
@@ -668,7 +668,7 @@ const Journal = () => {
         <button 
           onClick={() => submitMutation.mutate(content)}
           disabled={!content.trim() || submitMutation.isPending || submitMutation.isSuccess}
-          className="self-end px-6 py-2 bg-primary text-primary-foreground font-medium rounded-lg disabled:opacity-50 hover:opacity-90 transition"
+          className="self-stretch sm:self-end px-6 py-3 sm:py-2 bg-primary text-primary-foreground font-medium rounded-lg disabled:opacity-50 hover:opacity-90 transition"
         >
           {submitMutation.isPending ? 'Submitting...' : submitMutation.isSuccess ? 'Submitted' : 'Submit to Emma'}
         </button>
@@ -730,6 +730,32 @@ const Journal = () => {
   );
 };
 
+const BottomNav = () => {
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
+  
+  return (
+    <nav className="md:hidden fixed bottom-0 w-full bg-card border-t border-border flex justify-around items-center p-3 z-50">
+      <Link to="/" className={`flex flex-col items-center gap-1 ${isActive('/') ? 'text-primary' : 'text-muted-foreground'}`}>
+        <Home size={20} />
+        <span className="text-[10px] font-medium">Home</span>
+      </Link>
+      <Link to="/chat" className={`flex flex-col items-center gap-1 ${isActive('/chat') ? 'text-primary' : 'text-muted-foreground'}`}>
+        <MessageSquare size={20} />
+        <span className="text-[10px] font-medium">Chat</span>
+      </Link>
+      <Link to="/vocabulary" className={`flex flex-col items-center gap-1 ${isActive('/vocabulary') ? 'text-primary' : 'text-muted-foreground'}`}>
+        <BookOpen size={20} />
+        <span className="text-[10px] font-medium">Vocab</span>
+      </Link>
+      <Link to="/journal" className={`flex flex-col items-center gap-1 ${isActive('/journal') ? 'text-primary' : 'text-muted-foreground'}`}>
+        <PenTool size={20} />
+        <span className="text-[10px] font-medium">Journal</span>
+      </Link>
+    </nav>
+  );
+};
+
 function App() {
   useEffect(() => {
     if (!localStorage.getItem('ec_user_id')) {
@@ -740,13 +766,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+        <div className="min-h-screen bg-background text-foreground flex flex-col font-sans pb-16 md:pb-0">
           <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 p-4 flex justify-between items-center z-10">
             <Link to="/" className="text-xl font-bold text-primary flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">E</div>
-              English Companion
+              <span className="hidden sm:inline">English Companion</span>
             </Link>
-            <nav className="flex gap-4">
+            <nav className="hidden md:flex gap-4">
               <Link to="/" className="text-muted-foreground hover:text-foreground font-medium">Dashboard</Link>
               <Link to="/chat" className="text-muted-foreground hover:text-foreground font-medium">Chat</Link>
               <Link to="/vocabulary" className="text-muted-foreground hover:text-foreground font-medium">Vocabulary</Link>
@@ -761,6 +787,7 @@ function App() {
               <Route path="/journal" element={<Journal />} />
             </Routes>
           </main>
+          <BottomNav />
         </div>
       </BrowserRouter>
     </QueryClientProvider>
