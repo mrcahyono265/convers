@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: english-companion
+    env: bun
+    buildCommand: "cd client && npm install && npm run build && cd ../server && bun install"
+    startCommand: "cd server && bun run src/index.ts"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false

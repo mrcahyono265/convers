@@ -64,4 +64,5 @@ export const dailyProgress = pgTable("daily_progress", {
   vocabularyReviewed: integer("vocabulary_reviewed").default(0),
   journalWritten: boolean("journal_written").default(false),
   averageConfidence: integer("average_confidence").default(0),
+  averageWpm: integer("average_wpm").default(0),
 });

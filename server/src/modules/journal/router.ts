@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { db } from '../../database';
 import { journals, vocabularies } from '../../database/schema';
+import { sql } from 'drizzle-orm';
 import { evaluateJournalEntry } from '../ai/service';
 
 type Variables = { userId: string };
@@ -44,14 +45,25 @@ router.post('/submit', async (c) => {
         if (aiEvaluation.newVocabulary && Array.isArray(aiEvaluation.newVocabulary)) {
             for (const vocab of aiEvaluation.newVocabulary) {
                 if (vocab.word && vocab.meaning && vocab.example) {
-                    await db.insert(vocabularies).values({
-                        userId,
-                        word: vocab.word,
-                        meaning: vocab.meaning,
-                        example: vocab.example,
-                        source: "journal",
-                        practiceAttempts: 0
-                    });
+                    const wordStr = String(vocab.word).trim();
+                    
+                    const existing = await db.select()
+                        .from(vocabularies)
+                        .where(
+                            sql`${vocabularies.userId} = ${userId} AND lower(${vocabularies.word}) = lower(${wordStr})`
+                        )
+                        .limit(1);
+
+                    if (existing.length === 0) {
+                        await db.insert(vocabularies).values({
+                            userId,
+                            word: wordStr,
+                            meaning: vocab.meaning,
+                            example: vocab.example,
+                            source: "journal",
+                            practiceAttempts: 0
+                        });
+                    }
                 }
             }
         }

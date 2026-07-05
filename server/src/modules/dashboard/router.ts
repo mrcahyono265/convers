@@ -72,23 +72,41 @@ router.get('/metrics', async (c) => {
             }
         }
 
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
         let totalConfidence = 0;
         let confidenceDays = 0;
+        let totalWpm = 0;
+        let wpmDays = 0;
+        let recentMinutes = 0;
+
         for (const p of progressRes) {
-            if (p.averageConfidence && p.averageConfidence > 0) {
-                totalConfidence += p.averageConfidence;
-                confidenceDays++;
+            const pDate = new Date(p.date);
+            if (pDate >= sevenDaysAgo) {
+                if (p.averageConfidence && p.averageConfidence > 0) {
+                    totalConfidence += p.averageConfidence;
+                    confidenceDays++;
+                }
+                if (p.averageWpm && p.averageWpm > 0) {
+                    totalWpm += p.averageWpm;
+                    wpmDays++;
+                }
+                recentMinutes += (p.conversationMinutes || 0);
             }
         }
+        
         const averageConfidence = confidenceDays > 0 ? Math.round(totalConfidence / confidenceDays) : 0;
+        const averageWpm = wpmDays > 0 ? Math.round(totalWpm / wpmDays) : 0;
+        const averageMinutesSpoken = Math.round(recentMinutes / 7);
 
         return c.json({
             success: true,
             data: {
                 dayStreak: streak,
-                minutesSpoken: totalMinutes,
-                wordsMastered: wordsMastered,
-                journalsWritten: journalsWritten,
+                averageMinutesSpoken,
+                averageWpm,
                 averageConfidence
             }
         });
@@ -98,14 +116,15 @@ router.get('/metrics', async (c) => {
     }
 });
 
-router.post('/progress/minutes', async (c) => {
+    router.post('/progress/minutes', async (c) => {
     try {
         const userId = c.get('userId' as never) as string;
         const body = await c.req.json();
         const minutes = Math.floor(body.minutes || 0);
         const incomingConfidence = body.averageConfidence || 0;
+        const incomingWpm = body.wpm || 0;
 
-        if (minutes <= 0 && incomingConfidence <= 0) {
+        if (minutes <= 0 && incomingConfidence <= 0 && incomingWpm <= 0) {
             return c.json({ success: true, message: 'Ignored zero metrics' });
         }
 
@@ -124,11 +143,18 @@ router.post('/progress/minutes', async (c) => {
             if (incomingConfidence > 0) {
                 newConf = newConf > 0 ? Math.round((newConf + incomingConfidence) / 2) : incomingConfidence;
             }
+            
+            // Average WPM
+            let newWpm = existing.averageWpm || 0;
+            if (incomingWpm > 0) {
+                newWpm = newWpm > 0 ? Math.round((newWpm + incomingWpm) / 2) : incomingWpm;
+            }
 
             await db.update(dailyProgress)
                 .set({ 
                     conversationMinutes: (existing.conversationMinutes || 0) + minutes,
-                    averageConfidence: newConf 
+                    averageConfidence: newConf,
+                    averageWpm: newWpm
                 })
                 .where(eq(dailyProgress.id, existing.id));
         } else {
@@ -136,7 +162,8 @@ router.post('/progress/minutes', async (c) => {
                 userId: userId,
                 date: today,
                 conversationMinutes: minutes,
-                averageConfidence: incomingConfidence
+                averageConfidence: incomingConfidence,
+                averageWpm: incomingWpm
             });
         }
 

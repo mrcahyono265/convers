@@ -9,7 +9,7 @@ const Dashboard = () => {
   const { data: metrics, isLoading } = useQuery({
     queryKey: ['dashboardMetrics'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:3000/api/dashboard/metrics', {
+      const res = await fetch('/api/dashboard/metrics', {
         headers: { 'X-User-ID': localStorage.getItem('ec_user_id') || '' }
       });
       if (!res.ok) throw new Error('API Error');
@@ -17,7 +17,7 @@ const Dashboard = () => {
     }
   });
 
-  const m = metrics?.data || { dayStreak: 0, minutesSpoken: 0, wordsMastered: 0, journalsWritten: 0 };
+  const m = metrics?.data || { dayStreak: 0, averageMinutesSpoken: 0, averageWpm: 0, averageConfidence: 0 };
 
   return (
     <div className="p-8 space-y-8 max-w-4xl mx-auto">
@@ -35,16 +35,16 @@ const Dashboard = () => {
             <span className="text-sm text-muted-foreground mt-1">Day Streak</span>
           </div>
           <div className="bg-card border border-border p-4 rounded-xl flex flex-col items-center justify-center text-center">
-            <span className="text-3xl font-bold text-primary">{m.minutesSpoken}</span>
-            <span className="text-sm text-muted-foreground mt-1">Minutes Spoken</span>
+            <span className="text-3xl font-bold text-primary">{m.averageMinutesSpoken} <span className="text-sm">m/day</span></span>
+            <span className="text-sm text-muted-foreground mt-1">Avg Minutes (7d)</span>
           </div>
           <div className="bg-card border border-border p-4 rounded-xl flex flex-col items-center justify-center text-center">
-            <span className="text-3xl font-bold text-emerald-500">{m.wordsMastered}</span>
-            <span className="text-sm text-muted-foreground mt-1">Words Mastered</span>
+            <span className="text-3xl font-bold text-emerald-500">{m.averageWpm || 0}</span>
+            <span className="text-sm text-muted-foreground mt-1">Avg WPM (7d)</span>
           </div>
           <div className="bg-card border border-border p-4 rounded-xl flex flex-col items-center justify-center text-center">
             <span className="text-3xl font-bold text-amber-500">{m.averageConfidence || 0}%</span>
-            <span className="text-sm text-muted-foreground mt-1">Avg Confidence</span>
+            <span className="text-sm text-muted-foreground mt-1">Avg Confidence (7d)</span>
           </div>
         </div>
       )}
@@ -98,9 +98,11 @@ const ChatInterface = () => {
   const timeRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const secondsRef = useRef(seconds);
 
-  // Confidence Tracking
+  // Confidence & WPM Tracking
   const [confidenceScores, setConfidenceScores] = useState<number[]>([]);
   const confidenceRef = useRef<number[]>([]);
+  const [wpmScores, setWpmScores] = useState<number[]>([]);
+  const wpmRef = useRef<number[]>([]);
   const lastAIMessageTimeRef = useRef<number>(Date.now());
   const pendingMessageStatsRef = useRef<{ reactionTime: number, wordCount: number } | null>(null);
 
@@ -123,6 +125,10 @@ const ChatInterface = () => {
   }, [confidenceScores]);
 
   useEffect(() => {
+    wpmRef.current = wpmScores;
+  }, [wpmScores]);
+
+  useEffect(() => {
     if (isActive) {
       timeRef.current = setInterval(() => {
         setSeconds(s => s + 1);
@@ -140,16 +146,18 @@ const ChatInterface = () => {
     return () => {
       const finalSeconds = secondsRef.current;
       const scores = confidenceRef.current;
+      const wScores = wpmRef.current;
       const avgConfidence = scores.length > 0 ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+      const avgWpm = wScores.length > 0 ? Math.round(wScores.reduce((a,b)=>a+b,0)/wScores.length) : 0;
 
-      if (finalSeconds > 0 || avgConfidence > 0) {
-        fetch('http://localhost:3000/api/dashboard/progress/minutes', {
+      if (finalSeconds > 0 || avgConfidence > 0 || avgWpm > 0) {
+        fetch('/api/dashboard/progress/minutes', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             'X-User-ID': localStorage.getItem('ec_user_id') || ''
           },
-          body: JSON.stringify({ minutes: finalSeconds / 60, averageConfidence: avgConfidence }),
+          body: JSON.stringify({ minutes: finalSeconds / 60, averageConfidence: avgConfidence, wpm: avgWpm }),
           keepalive: true
         }).catch(console.error);
       }
@@ -164,7 +172,7 @@ const ChatInterface = () => {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const res = await fetch('http://localhost:3000/api/chat/message', {
+      const res = await fetch('/api/chat/message', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -247,6 +255,7 @@ const ChatInterface = () => {
     const reactionTime = Math.max(0.1, (Date.now() - lastAIMessageTimeRef.current) / 1000);
     const wordCount = userMsg.split(/\s+/).filter(Boolean).length;
     const wpm = Math.round((wordCount / Math.max(1, reactionTime)) * 60);
+    setWpmScores(prev => [...prev, wpm]);
     pendingMessageStatsRef.current = { reactionTime, wordCount };
 
     setMessages(prev => [...prev, { role: 'user', content: userMsg, metrics: { reactionTime: parseFloat(reactionTime.toFixed(1)), wordCount, wpm } }]);
@@ -255,8 +264,8 @@ const ChatInterface = () => {
   };
 
   return (
-    <div className="p-4 flex flex-col h-[calc(100vh-73px)] max-w-4xl mx-auto">
-      <div className="flex justify-between items-center bg-card border border-border p-3 rounded-xl mb-4 shadow-sm">
+    <div className="p-4 flex flex-col h-full w-full max-w-4xl mx-auto overflow-hidden">
+      <div className="flex justify-between items-center bg-card border border-border p-3 rounded-xl mb-4 shadow-sm shrink-0">
         <div className="flex items-center gap-3">
           <div className={`w-2 h-2 rounded-full ${isActive ? (seconds >= 3600 ? 'bg-emerald-500' : 'bg-emerald-500 animate-pulse') : 'bg-amber-500'}`} />
           <span className={`font-mono text-lg font-medium tracking-wider ${seconds >= 3600 ? 'text-emerald-500 font-bold' : ''}`}>
@@ -414,7 +423,7 @@ const VocabCard = ({ vocab }: { vocab: any }) => {
 
   const practiceMutation = useMutation({
     mutationFn: async (text: string) => {
-      const res = await fetch(`http://localhost:3000/api/vocabulary/${vocab.id}/practice`, {
+      const res = await fetch(`/api/vocabulary/${vocab.id}/practice`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -429,7 +438,7 @@ const VocabCard = ({ vocab }: { vocab: any }) => {
 
   const reciteMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`http://localhost:3000/api/vocabulary/${vocab.id}/recite`, {
+      const res = await fetch(`/api/vocabulary/${vocab.id}/recite`, {
         method: 'POST',
         headers: { 'X-User-ID': localStorage.getItem('ec_user_id') || '' }
       });
@@ -557,7 +566,7 @@ const Vocabulary = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['vocabulary'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:3000/api/vocabulary', {
+      const res = await fetch('/api/vocabulary', {
         headers: { 'X-User-ID': localStorage.getItem('ec_user_id') || '' }
       });
       if (!res.ok) throw new Error('Network response was not ok');
@@ -623,7 +632,7 @@ const Journal = () => {
   const { data: promptData, isLoading: isPromptLoading } = useQuery({
     queryKey: ['journalPrompt'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:3000/api/journal/prompt', {
+      const res = await fetch('/api/journal/prompt', {
         headers: { 'X-User-ID': localStorage.getItem('ec_user_id') || '' }
       });
       if (!res.ok) throw new Error('Network response was not ok');
@@ -633,7 +642,7 @@ const Journal = () => {
 
   const submitMutation = useMutation({
     mutationFn: async (text: string) => {
-      const res = await fetch('http://localhost:3000/api/journal/submit', {
+      const res = await fetch('/api/journal/submit', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -766,8 +775,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <div className="min-h-screen bg-background text-foreground flex flex-col font-sans pb-16 md:pb-0">
-          <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 p-4 flex justify-between items-center z-10">
+        <div className="h-screen bg-background text-foreground flex flex-col font-sans pb-16 md:pb-0 overflow-hidden">
+          <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 p-4 flex justify-between items-center z-10 shrink-0">
             <Link to="/" className="text-xl font-bold text-primary flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">E</div>
               <span className="hidden sm:inline">English Companion</span>
@@ -779,7 +788,7 @@ function App() {
               <Link to="/journal" className="text-muted-foreground hover:text-foreground font-medium">Journal</Link>
             </nav>
           </header>
-          <main className="flex-1">
+          <main className="flex-1 flex flex-col overflow-y-auto">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/chat" element={<ChatInterface />} />
