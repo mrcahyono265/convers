@@ -10,7 +10,7 @@ RUN cd client && npm run build
 FROM oven/bun:1 AS runner
 WORKDIR /app
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
 COPY server/package.json server/bun.lock* ./
 RUN bun install --no-save --production
