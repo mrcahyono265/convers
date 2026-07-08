@@ -1,15 +1,27 @@
-import { validateEnv } from './config/env';
-import { runMigrations } from './database/migrate';
+import { validateEnv, env } from './config/env';
+import { checkDatabase } from './database/check';
+import { createModuleLogger } from './utils/logger';
+
+const log = createModuleLogger('server');
 
 validateEnv();
 
-await runMigrations();
+await checkDatabase();
 
 import app from './app'
 
-const port = parseInt(process.env.PORT || '3000', 10)
+const port = env.PORT
 
-console.log(`Server is running on http://localhost:${port}`)
+log.info({ port, env: env.NODE_ENV }, `Server starting on port ${port}`);
+
+// Graceful shutdown
+function shutdown(signal: string) {
+  log.info({ signal }, `Received ${signal}. Shutting down gracefully...`);
+  process.exit(0);
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 export default {
   port,

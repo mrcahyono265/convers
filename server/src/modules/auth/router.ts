@@ -1,9 +1,20 @@
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { createGuestUser, registerUser, loginUser } from './service';
 import { ok, handleError } from '../../utils/response';
 import { ValidationError } from '../../utils/errors';
+import { guestSchema, registerSchema, loginSchema } from './schemas';
 
 const router = new Hono();
+
+function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    const message = result.error.issues.map(i => i.message).join('; ');
+    throw new ValidationError(message);
+  }
+  return result.data;
+}
 
 router.post('/guest', async (c) => {
   try {
@@ -17,26 +28,9 @@ router.post('/guest', async (c) => {
 router.post('/register', async (c) => {
   try {
     const body = await c.req.json();
-    const { email, password, name } = body;
-
-    if (!email || !password || !name) {
-      throw new ValidationError('Email, password, and name are required');
-    }
-
-    if (typeof email !== 'string' || !email.includes('@')) {
-      throw new ValidationError('Invalid email format');
-    }
-
-    if (typeof password !== 'string' || password.length < 6) {
-      throw new ValidationError('Password must be at least 6 characters');
-    }
-
-    if (typeof name !== 'string' || name.trim().length === 0) {
-      throw new ValidationError('Name is required');
-    }
-
-    const { id, token } = await registerUser(email, password, name.trim());
-    return ok(c, { data: { token, user: { id, name: name.trim(), email, isGuest: false } } }, 201);
+    const { email, password, name } = validate(registerSchema, body);
+    const { id, token } = await registerUser(email, password, name);
+    return ok(c, { data: { token, user: { id, name, email, isGuest: false } } }, 201);
   } catch (err) {
     return handleError(c, err);
   }
@@ -45,12 +39,7 @@ router.post('/register', async (c) => {
 router.post('/login', async (c) => {
   try {
     const body = await c.req.json();
-    const { email, password } = body;
-
-    if (!email || !password) {
-      throw new ValidationError('Email and password are required');
-    }
-
+    const { email, password } = validate(loginSchema, body);
     const { id, token, name } = await loginUser(email, password);
     return ok(c, { data: { token, user: { id, name, email, isGuest: false } } });
   } catch (err) {

@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { queryKeys } from '../api/keys';
+import type { JournalSubmitResponse } from '../types/journal';
 
 export default function Journal() {
   const [content, setContent] = useState('');
 
   const { data: promptData, isLoading: isPromptLoading } = useQuery({
-    queryKey: ['journalPrompt'],
+    queryKey: queryKeys.journal.prompt,
     queryFn: () => api<{ success: boolean; data: { prompt: string } }>('/api/journal/prompt'),
   });
 
   const submitMutation = useMutation({
     mutationFn: async (text: string) =>
-      api<{ success: boolean; feedback: any }>('/api/journal/submit', {
+      api<JournalSubmitResponse>('/api/journal/submit', {
         method: 'POST',
         body: { content: text, prompt: promptData?.data?.prompt },
       }),

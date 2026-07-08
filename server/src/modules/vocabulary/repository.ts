@@ -1,6 +1,6 @@
 import { db } from '../../database';
 import { vocabularies } from '../../database/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 
 export function findAllByUser(userId: string) {
   return db.select()
@@ -30,4 +30,24 @@ export async function updateRecite(id: string, reviews: number) {
       lastReviewedAt: new Date(),
     })
     .where(eq(vocabularies.id, id));
+}
+
+export async function findVocabularyByWord(userId: string, word: string) {
+  const [existing] = await db.select()
+    .from(vocabularies)
+    .where(
+      sql`${vocabularies.userId} = ${userId} AND lower(${vocabularies.word}) = lower(${word})`
+    )
+    .limit(1);
+  return existing;
+}
+
+export async function insertVocabulary(userId: string, word: string, meaning: string, example: string) {
+  await db.insert(vocabularies).values({
+    userId,
+    word,
+    meaning: meaning || 'No meaning provided',
+    example: example || 'No example provided',
+    status: 'learning',
+  });
 }

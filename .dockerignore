@@ -6,3 +6,6 @@ node_modules/
 .env.*
 *.local
 plan/
+dist/
+client/node_modules/
+server/node_modules/

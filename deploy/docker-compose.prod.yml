@@ -1,60 +1,21 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: convers-db
-    environment:
-      POSTGRES_DB: english_companion
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
   app:
     build:
       context: ..
       dockerfile: Dockerfile
     container_name: convers-app
+    restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/english_companion
+      DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       NVIDIA_API_KEY: ${NVIDIA_API_KEY}
       NVIDIA_BASE_URL: ${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}
       PORT: "3000"
       NODE_ENV: production
-      CORS_ORIGIN: ${CORS_ORIGIN:-https://your-domain.com}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    networks:
+      - convers-network
 
-  nginx:
-    image: nginx:alpine
-    container_name: convers-nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certbot/www:/var/www/certbot:ro
-      - certbot-certs:/etc/letsencrypt:ro
-    depends_on:
-      - app
-    restart: unless-stopped
-
-  certbot:
-    image: certbot/certbot
-    container_name: convers-certbot
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - certbot-certs:/etc/letsencrypt
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
-
-volumes:
-  postgres_data:
-  certbot-certs:
+networks:
+  convers-network:
+    external: true

@@ -16,3 +16,9 @@ export interface JournalFeedback {
   nativeRewrite: string;
   newVocabulary: NewVocabulary[];
 }
+
+export interface JournalSubmitResponse {
+  success: boolean;
+  feedback: JournalFeedback;
+  confidence: number;
+}

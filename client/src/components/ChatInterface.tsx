@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Play, Pause, Flag } from 'lucide-react';
 import { getToken, api } from '../api/client';
+import type { ChatResponse } from '../types/chat';
 
 const INITIAL_GREETINGS = [
   "Hey! How's your day going? I just had the best coffee, what are you up to? ☕",
@@ -73,7 +74,7 @@ export default function ChatInterface() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) =>
-      api<{ success: boolean; sessionId: string; response: string; metadata: any }>('/api/chat/message', {
+      api<ChatResponse>('/api/chat/message', {
         method: 'POST',
         body: { sessionId, content: message, history: messages.map(m => ({ role: m.role, content: m.content })), modelId },
       }),

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { queryKeys } from '../api/keys';
+import type { VocabularyWord } from '../types/vocabulary';
 import VocabCard from './VocabCard';
 
 export default function Vocabulary() {
   const [sortOrder, setSortOrder] = useState('newest');
 
   const { data: res, isLoading } = useQuery({
-    queryKey: ['vocabulary'],
-    queryFn: () => api<{ success: boolean; data: any[] }>('/api/vocabulary'),
+    queryKey: queryKeys.vocabulary.all,
+    queryFn: () => api<{ success: boolean; data: VocabularyWord[] }>('/api/vocabulary'),
   });
 
   const getSortedData = () => {
@@ -17,8 +19,8 @@ export default function Vocabulary() {
     switch (sortOrder) {
       case 'newest': return arr;
       case 'oldest': return arr.reverse();
-      case 'az': return arr.sort((a: any, b: any) => a.word.localeCompare(b.word));
-      case 'most_reviewed': return arr.sort((a: any, b: any) => (b.reviewCount || 0) - (a.reviewCount || 0));
+      case 'az': return arr.sort((a, b) => a.word.localeCompare(b.word));
+      case 'most_reviewed': return arr.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
       default: return arr;
     }
   };

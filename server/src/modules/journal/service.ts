@@ -1,5 +1,7 @@
 import { evaluateJournalEntry } from '../ai/service';
-import { insertJournal, findVocabularyByWord, insertVocabulary } from './repository';
+import { insertJournal } from './repository';
+import { findVocabularyByWord, insertVocabulary } from '../vocabulary/repository';
+import { saveProgress } from '../dashboard/service';
 
 export const JOURNAL_PROMPTS = [
   'What is a memorable experience you had recently, and why did it stand out?',
@@ -35,5 +37,10 @@ export async function submitJournal(userId: string, content: string, prompt: str
 
   await insertJournal(userId, prompt, content, aiEvaluation);
 
-  return aiEvaluation;
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  const correctionCount = aiEvaluation.corrections?.length || 0;
+  const journalConfidence = wordCount > 0 ? Math.max(0, Math.round(100 - (correctionCount / wordCount) * 200)) : 0;
+  saveProgress(userId, 5, journalConfidence, 0).catch(console.error);
+
+  return { feedback: aiEvaluation, confidence: journalConfidence };
 }

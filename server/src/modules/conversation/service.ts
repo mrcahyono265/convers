@@ -1,6 +1,7 @@
 import type { NewVocabulary } from '../ai/types';
 import { generateChatResponse } from '../ai/service';
-import { createSession, saveMessage, findVocabularyByWord, insertVocabulary } from './repository';
+import { createSession, saveMessage } from './repository';
+import { findVocabularyByWord, insertVocabulary } from '../vocabulary/repository';
 
 export async function processMessage(userId: string, content: string, sessionId: string | null, history: { role: string; content: string }[], modelId: string | undefined) {
   let currentSessionId = sessionId;

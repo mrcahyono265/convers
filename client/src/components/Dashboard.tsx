@@ -2,11 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Flame, Timer, Gauge, Target } from 'lucide-react';
 import { api } from '../api/client';
+import { queryKeys } from '../api/keys';
+import type { DashboardMetrics } from '../types/dashboard';
 
 export default function Dashboard() {
   const { data: res, isLoading } = useQuery({
-    queryKey: ['dashboardMetrics'],
-    queryFn: () => api<{ success: boolean; data: { dayStreak: number; averageMinutesSpoken: number; averageWpm: number; averageConfidence: number } }>('/api/dashboard/metrics'),
+    queryKey: queryKeys.dashboard.metrics,
+    queryFn: () => api<{ success: boolean; data: DashboardMetrics }>('/api/dashboard/metrics'),
   });
 
   const m = res?.data || { dayStreak: 0, averageMinutesSpoken: 0, averageWpm: 0, averageConfidence: 0 };

@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install server dependencies
+        working-directory: server
+        run: bun install --frozen-lockfile
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Typecheck server
+        working-directory: server
+        run: bun x tsc --noEmit
+
+      - name: Typecheck client
+        working-directory: client
+        run: npx tsc -b
+
+      - name: Lint client
+        working-directory: client
+        run: npm run lint
+
+      - name: Build client
+        working-directory: client
+        run: npm run build
+
+      - name: Test server
+        working-directory: server
+        run: bun test
+        env:
+          DATABASE_URL: postgresql://localhost:5432/test
+          JWT_SECRET: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          NVIDIA_API_KEY: nvapi-test
+
+      - name: Docker build
+        run: docker build -t convers-test --no-cache .

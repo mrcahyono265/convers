@@ -2,6 +2,9 @@ import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { HTTPException } from 'hono/http-exception';
 import { AppError } from './errors';
+import { createModuleLogger } from './logger';
+
+const log = createModuleLogger('http');
 
 export function ok(c: Context, payload?: Record<string, unknown>, status: ContentfulStatusCode = 200) {
   return c.json({ success: true, ...payload }, status);
@@ -26,7 +29,7 @@ export function handleError(c: Context, err: unknown) {
     }, err.status);
   }
 
-  console.error('[Unhandled Error]', err);
+  log.error({ err }, 'Unhandled error');
   return c.json({
     success: false,
     error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error' }
