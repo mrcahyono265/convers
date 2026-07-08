@@ -80,7 +80,7 @@ export default function ChatInterface() {
     onSuccess: (data) => {
       let msgConfidence: number | undefined;
       if (pendingMessageStatsRef.current && data.metadata) {
-        const { reactionTime, wordCount } = pendingMessageStatsRef.current;
+        const { wordCount } = pendingMessageStatsRef.current;
         const grammarCount = data.metadata.grammarMistakes?.length || 0;
         const contextScore = data.metadata.contextScore || 50;
 
