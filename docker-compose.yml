@@ -39,3 +39,7 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  shared-web-network:
+    external: true
