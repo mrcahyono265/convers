@@ -4,34 +4,38 @@ import { logger } from 'hono/logger'
 import { serveStatic } from 'hono/bun'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import { env } from './config/env'
+import { handleError } from './utils/response'
 
 const app = new Hono()
 
 app.use('*', logger())
 app.use('*', cors({
-  origin: '*', // We can restrict this later
+  origin: env.CORS_ORIGIN,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }))
 
 app.onError((err, c) => {
-  console.error(`[Error] ${err.message}`, err)
-  return c.json({ success: false, message: 'Internal Server Error' }, 500)
+  return handleError(c, err)
 })
 
+import authRouter from './modules/auth/router'
 import conversationRouter from './modules/conversation/router'
 import vocabularyRouter from './modules/vocabulary/router'
 import journalRouter from './modules/journal/router'
 import dashboardRouter from './modules/dashboard/router'
-import { authMiddleware } from './middleware/auth'
+import { jwtMiddleware } from './middleware/jwt'
 
-// Apply auth middleware to all API routes
-app.use('/api/*', authMiddleware)
+// Public routes (no auth required)
+app.route('/api/auth', authRouter)
 
-// Health check endpoint
+// Health check (public)
 app.get('/health', (c) => {
   return c.json({ success: true, status: 'ok', timestamp: new Date().toISOString() })
 })
 
+// Protected API routes
+app.use('/api/*', jwtMiddleware)
 app.route('/api/chat', conversationRouter)
 app.route('/api/vocabulary', vocabularyRouter)
 app.route('/api/journal', journalRouter)

@@ -1,10 +1,8 @@
 # Stage 1: Build the React frontend
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app
-# Copy client package.json and install dependencies
 COPY client/package*.json ./client/
-RUN cd client && npm install
-# Copy client source code and build
+RUN cd client && npm ci
 COPY client/ ./client/
 RUN cd client && npm run build
 
@@ -12,24 +10,25 @@ RUN cd client && npm run build
 FROM oven/bun:1 AS runner
 WORKDIR /app
 
-# Copy server package.json and install dependencies
-COPY server/package.json ./server/
-COPY server/bun.lock ./server/
-RUN cd server && bun install --no-save --production
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Copy backend source code
+COPY server/package.json server/bun.lock* ./
+RUN bun install --no-save --production
+
 COPY server/ ./server/
-
-# Copy the built frontend from Stage 1
 COPY --from=frontend-builder /app/client/dist ./client/dist
 
-# Expose port 3000
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
 EXPOSE 3000
 
-# Set environment variables (will be overridden by docker-compose)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
 ENV PORT=3000
 ENV NODE_ENV=production
 
-# Command to run the application
 WORKDIR /app/server
 CMD ["bun", "run", "src/index.ts"]

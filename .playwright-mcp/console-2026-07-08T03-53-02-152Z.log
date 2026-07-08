@@ -1,0 +1,37 @@
+[    1191ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=200b59e7:14335
+[    1528ms] [ERROR] TypeError: Cannot read properties of undefined (reading 'token')
+    at createGuestSession (http://localhost:5173/src/api/auth.ts:4:20) @ :0
+[    1727ms] [ERROR] TypeError: Cannot read properties of undefined (reading 'token')
+    at createGuestSession (http://localhost:5173/src/api/auth.ts:4:20) @ :0
+[    1783ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/dashboard/metrics:0
+[    2805ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/dashboard/metrics:0
+[    4827ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/dashboard/metrics:0
+[    8855ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/dashboard/metrics:0
+[  279115ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/chat/message:0
+[  284196ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/dashboard/progress/minutes:0
+[  284212ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/vocabulary:0
+[  285240ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/vocabulary:0
+[  287263ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/vocabulary:0
+[  291283ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/vocabulary:0
+[  387424ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/journal/prompt:0
+[  388454ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/journal/prompt:0
+[  390482ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/journal/prompt:0
+[  394503ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/journal/prompt:0
+[  648026ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5173/@vite/client:992
+[  835951ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=200b59e7:14335
+[ 1194010ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=200b59e7:14335
+[ 2177713ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=200b59e7:14335
+[ 2548034ms] [ERROR] [vite] SyntaxError: The requested module '/src/api/client.ts?t=1783485329968' does not provide an export named 'getUser' @ http://localhost:5173/@vite/client:928
+[ 2548035ms] [ERROR] [vite] Failed to reload /src/components/Header.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:928
+[ 2548036ms] [ERROR] [vite] SyntaxError: The requested module '/src/api/client.ts?t=1783485329968' does not provide an export named 'setUser' @ http://localhost:5173/@vite/client:928
+[ 2548037ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:928
+[ 2548038ms] [ERROR] [vite] SyntaxError: The requested module '/src/api/client.ts?t=1783485329968' does not provide an export named 'setUser' @ http://localhost:5173/@vite/client:928
+[ 2548038ms] [ERROR] [vite] Failed to reload /src/components/LoginPage.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:928
+[ 2548039ms] [ERROR] [vite] SyntaxError: The requested module '/src/api/client.ts?t=1783485329968' does not provide an export named 'setUser' @ http://localhost:5173/@vite/client:928
+[ 2548039ms] [ERROR] [vite] Failed to reload /src/components/RegisterPage.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:928
+[ 2551377ms] [ERROR] [vite] SyntaxError: The requested module '/src/api/client.ts?t=1783485329968' does not provide an export named 'getUser' @ http://localhost:5173/@vite/client:928
+[ 2551377ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:928
+[ 2768219ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/register:0
+[ 2774383ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/login:0
+[ 2776826ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/register:0
+[ 2805570ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=200b59e7:14335

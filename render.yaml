@@ -7,5 +7,11 @@ services:
     envVars:
       - key: DATABASE_URL
         sync: false
-      - key: OPENROUTER_API_KEY
+      - key: JWT_SECRET
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: NVIDIA_BASE_URL
+        value: "https://integrate.api.nvidia.com/v1"
+      - key: CORS_ORIGIN
         sync: false

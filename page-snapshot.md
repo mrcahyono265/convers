@@ -1,0 +1,31 @@
+- generic [ref=e5]:
+  - banner [ref=e6]:
+    - link "E English Companion" [ref=e7] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e8]: E
+      - generic [ref=e9]: English Companion
+    - navigation [ref=e10]:
+      - link "Dashboard" [ref=e11] [cursor=pointer]:
+        - /url: /
+      - link "Chat" [ref=e12] [cursor=pointer]:
+        - /url: /chat
+      - link "Vocabulary" [ref=e13] [cursor=pointer]:
+        - /url: /vocabulary
+      - link "Journal" [ref=e14] [cursor=pointer]:
+        - /url: /journal
+  - main [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - heading "Good Morning!" [level=1] [ref=e18]
+        - paragraph [ref=e19]: Ready for today's mission?
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - heading "Daily Conversation" [level=2] [ref=e23]
+          - paragraph [ref=e24]: Talk to Emma for 10 minutes to build your confidence and learn new words.
+          - link "Start Conversation" [ref=e25] [cursor=pointer]:
+            - /url: /chat
+        - generic [ref=e26]:
+          - heading "Vocabulary Review" [level=2] [ref=e27]
+          - paragraph [ref=e28]: You have 5 words waiting for review based on your previous conversations.
+          - link "Review Vocabulary" [ref=e29] [cursor=pointer]:
+            - /url: /vocabulary

@@ -1,8 +1,4 @@
-import { config } from 'dotenv';
-config();
-
-const getApiKey = () => process.env.NVIDIA_API_KEY;
-const getBaseUrl = () => process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1";
+import { env } from '../../config/env';
 
 const SYSTEM_PROMPT = `You are Emma, a 24-year-old friendly, highly empathetic, and super casual English learning buddy. 
 Act like a real human friend chatting on WhatsApp. Use emojis naturally, be expressive (e.g., "Haha!", "Omg!", "That's awesome!"), and keep your sentences relatively short and conversational. NEVER sound like an AI assistant or a strict teacher.
@@ -35,56 +31,54 @@ Format:
 }`;
 
 export async function generateChatResponse(userMessage: string, history: any[], modelId: string = 'meta/llama-3.1-70b-instruct') {
-    const apiKey = getApiKey();
-    // If no API key provided, return a mock response for development
-    if (!apiKey) {
-        return {
-            response: "Hi there! I'm running in mock mode since no API key was provided. How are you doing today?",
-            metadata: {
-                confidenceScore: 100,
-                conversationTopic: "Development",
-                grammarMistakes: [],
-                newVocabulary: [],
-                memoryCandidate: null
-            }
-        };
-    }
+  if (!env.NVIDIA_API_KEY) {
+    return {
+      response: "Hi there! I'm running in mock mode since no API key was provided. How are you doing today?",
+      metadata: {
+        confidenceScore: 100,
+        conversationTopic: "Development",
+        grammarMistakes: [],
+        newVocabulary: [],
+        memoryCandidate: null
+      }
+    };
+  }
 
-    const messages = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...history,
-        { role: 'user', content: userMessage }
-    ];
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...history,
+    { role: 'user', content: userMessage }
+  ];
 
-    const response = await fetch(`${getBaseUrl()}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            model: modelId,
-            messages,
-            temperature: 0.7,
-            max_tokens: 500,
-            response_format: { type: 'json_object' }
-        })
-    });
+  const response = await fetch(`${env.NVIDIA_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${env.NVIDIA_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: modelId,
+      messages,
+      temperature: 0.7,
+      max_tokens: 500,
+      response_format: { type: 'json_object' }
+    })
+  });
 
-    if (!response.ok) {
-        throw new Error(`AI API failed: ${response.statusText}`);
-    }
+  if (!response.ok) {
+    throw new Error(`AI API failed: ${response.statusText}`);
+  }
 
-    const data = await response.json() as any;
-    try {
-        return JSON.parse(data.choices[0].message.content);
-    } catch (e) {
-        console.error("Failed to parse AI response", e);
-        return {
-            response: data.choices[0].message.content,
-            metadata: {}
-        };
-    }
+  const data = await response.json() as any;
+  try {
+    return JSON.parse(data.choices[0].message.content);
+  } catch (e) {
+    console.error("Failed to parse AI response", e);
+    return {
+      response: data.choices[0].message.content,
+      metadata: {}
+    };
+  }
 }
 
 const PRACTICE_PROMPT = `You are Emma, an English tutor. The user is practicing how to use a specific vocabulary word in a sentence.
@@ -99,52 +93,51 @@ Format:
 }`;
 
 export async function evaluateVocabularyPractice(word: string, sentence: string) {
-    const apiKey = getApiKey();
-    if (!apiKey) {
-        return {
-            isCorrect: true,
-            feedback: "Great job! (Mock mode)",
-            improvedSentence: sentence
-        };
-    }
+  if (!env.NVIDIA_API_KEY) {
+    return {
+      isCorrect: true,
+      feedback: "Great job! (Mock mode)",
+      improvedSentence: sentence
+    };
+  }
 
-    const userMessage = `Word: "${word}"\nMy sentence: "${sentence}"`;
-    
-    const messages = [
-        { role: 'system', content: PRACTICE_PROMPT },
-        { role: 'user', content: userMessage }
-    ];
+  const userMessage = `Word: "${word}"\nMy sentence: "${sentence}"`;
 
-    const response = await fetch(`${getBaseUrl()}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            model: 'meta/llama-3.1-8b-instruct', // Use a fast model for practice
-            messages,
-            temperature: 0.5,
-            max_tokens: 300,
-            response_format: { type: 'json_object' }
-        })
-    });
+  const messages = [
+    { role: 'system', content: PRACTICE_PROMPT },
+    { role: 'user', content: userMessage }
+  ];
 
-    if (!response.ok) {
-        throw new Error(`AI API failed: ${response.statusText}`);
-    }
+  const response = await fetch(`${env.NVIDIA_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${env.NVIDIA_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'meta/llama-3.1-8b-instruct',
+      messages,
+      temperature: 0.5,
+      max_tokens: 300,
+      response_format: { type: 'json_object' }
+    })
+  });
 
-    const data = await response.json() as any;
-    try {
-        return JSON.parse(data.choices[0].message.content);
-    } catch (e) {
-        console.error("Failed to parse AI response for practice", e);
-        return {
-            isCorrect: false,
-            feedback: "I had some trouble understanding that. Let's try again!",
-            improvedSentence: ""
-        };
-    }
+  if (!response.ok) {
+    throw new Error(`AI API failed: ${response.statusText}`);
+  }
+
+  const data = await response.json() as any;
+  try {
+    return JSON.parse(data.choices[0].message.content);
+  } catch (e) {
+    console.error("Failed to parse AI response for practice", e);
+    return {
+      isCorrect: false,
+      feedback: "I had some trouble understanding that. Let's try again!",
+      improvedSentence: ""
+    };
+  }
 }
 
 const JOURNAL_PROMPT = `You are an expert English writing tutor. The user has written a daily journal entry based on a prompt.
@@ -174,40 +167,39 @@ For newVocabulary, provide 1 or 2 useful casual words/idioms that relate to what
 `;
 
 export async function evaluateJournalEntry(content: string, prompt: string) {
-    const apiKey = getApiKey();
-    if (!apiKey) throw new Error("NVIDIA_API_KEY is missing");
+  if (!env.NVIDIA_API_KEY) throw new Error("NVIDIA_API_KEY is missing");
 
-    const userMessage = `Prompt: "${prompt}"\nMy Journal: "${content}"`;
-    
-    const messages = [
-        { role: 'system', content: JOURNAL_PROMPT },
-        { role: 'user', content: userMessage }
-    ];
+  const userMessage = `Prompt: "${prompt}"\nMy Journal: "${content}"`;
 
-    const response = await fetch(`${getBaseUrl()}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            model: 'meta/llama-3.1-70b-instruct',
-            messages,
-            temperature: 0.3,
-            max_tokens: 1000,
-            response_format: { type: 'json_object' }
-        })
-    });
+  const messages = [
+    { role: 'system', content: JOURNAL_PROMPT },
+    { role: 'user', content: userMessage }
+  ];
 
-    if (!response.ok) {
-        throw new Error(`AI API failed: ${response.statusText}`);
-    }
+  const response = await fetch(`${env.NVIDIA_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${env.NVIDIA_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'meta/llama-3.1-70b-instruct',
+      messages,
+      temperature: 0.3,
+      max_tokens: 1000,
+      response_format: { type: 'json_object' }
+    })
+  });
 
-    const data = await response.json() as any;
-    try {
-        return JSON.parse(data.choices[0].message.content);
-    } catch (e) {
-        console.error("Failed to parse AI journal response", e);
-        throw e;
-    }
+  if (!response.ok) {
+    throw new Error(`AI API failed: ${response.statusText}`);
+  }
+
+  const data = await response.json() as any;
+  try {
+    return JSON.parse(data.choices[0].message.content);
+  } catch (e) {
+    console.error("Failed to parse AI journal response", e);
+    throw e;
+  }
 }
