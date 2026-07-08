@@ -10,17 +10,15 @@ RUN cd client && npm run build
 FROM oven/bun:1 AS runner
 WORKDIR /app
 
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
-
 COPY server/package.json server/bun.lock* ./
 RUN bun install --no-save --production
 
 COPY server/ ./server/
 COPY --from=frontend-builder /app/client/dist ./client/dist
 
-RUN chown -R appuser:appgroup /app
+RUN chown -R 65534:65534 /app
 
-USER appuser
+USER 65534
 
 EXPOSE 3000
 
