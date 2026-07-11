@@ -6,17 +6,21 @@ RUN cd client && npm ci
 COPY client/ ./client/
 RUN cd client && npm run build
 
-# Stage 2: Bun backend
+# Stage 2: Production runtime
 FROM oven/bun:1 AS runner
-WORKDIR /app
+WORKDIR /app/server
 
-# Install dependencies first (layer caching)
-COPY server/package.json server/bun.lock* /app/
+# Install production dependencies only
+COPY server/package.json server/bun.lock* ./
 RUN bun install --frozen-lockfile --no-save --production
 
-# Copy source code and built frontend
-COPY server/ ./server/
-COPY --from=frontend-builder /app/client/dist ./client/dist
+# Copy application source code
+COPY server/src ./src
+COPY server/drizzle ./drizzle
+COPY server/tsconfig.json ./
+
+# Copy built frontend
+COPY --from=frontend-builder /app/client/dist ../client/dist
 
 RUN chown -R 65534:65534 /app
 USER 65534
@@ -29,5 +33,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 ENV PORT=3000
 ENV NODE_ENV=production
 
-WORKDIR /app/server
 CMD ["bun", "run", "src/index.ts"]

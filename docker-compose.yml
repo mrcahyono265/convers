@@ -15,6 +15,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - shared-web-network
     restart: unless-stopped
 
   app:
@@ -35,7 +37,25 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - shared-web-network
     restart: unless-stopped
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: ["migrate"]
+    container_name: convers-migrate
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/english_companion
+      NODE_ENV: production
+    command: ["bun", "run", "src/database/migrate.ts"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shared-web-network
 
 volumes:
   postgres_data:

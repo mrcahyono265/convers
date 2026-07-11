@@ -16,6 +16,19 @@ services:
     networks:
       - convers-network
 
+  migrate:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    profiles: ["migrate"]
+    container_name: convers-migrate
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: production
+    command: ["bun", "run", "src/database/migrate.ts"]
+    networks:
+      - convers-network
+
 networks:
   convers-network:
     external: true

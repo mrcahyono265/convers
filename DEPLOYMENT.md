@@ -3,21 +3,33 @@
 ## Local Development
 
 ```bash
-# Start PostgreSQL + app
-docker compose up -d
+# Start PostgreSQL
+docker compose up -d postgres
 
-# Run migrations
-docker compose exec app bun run db:migrate
+# Run database migrations
+docker compose --profile migrate run --rm migrate
+
+# Start the app
+docker compose up -d app
 ```
+
+The app will be available at http://localhost:3000.
 
 ## Docker Compose (Development)
 
-`docker-compose.yml` includes PostgreSQL and the app. Suitable for local development.
+`docker-compose.yml` includes PostgreSQL, the app, and a migration service. Suitable for local development.
 
 ```bash
 cp server/.env.development.example server/.env
+
+# Build and start PostgreSQL + app
 docker compose up -d
+
+# Run migrations (only needed on first deploy or after schema changes)
+docker compose --profile migrate run --rm migrate
 ```
+
+> **Note**: The `migrate` service uses the `migrate` profile, so it is excluded from `docker compose up`. You must run it explicitly with `--profile migrate`.
 
 ## Docker Compose (Production)
 
@@ -38,10 +50,30 @@ export JWT_SECRET="$(openssl rand -hex 32)"
 export NVIDIA_API_KEY="nvapi-..."
 export CORS_ORIGIN="https://your-domain.com"
 
-# 3. Deploy
-cd deploy
-docker compose -f docker-compose.prod.yml up -d
+# 3. Build the image
+docker compose -f deploy/docker-compose.prod.yml build
+
+# 4. Run database migrations
+docker compose -f deploy/docker-compose.prod.yml --profile migrate run --rm migrate
+
+# 5. Start the app
+docker compose -f deploy/docker-compose.prod.yml up -d app
 ```
+
+### Migration Management
+
+Migrations are **never** run automatically on container startup. Run them manually:
+
+```bash
+# After initial deploy or schema changes:
+docker compose -f deploy/docker-compose.prod.yml --profile migrate run --rm migrate
+```
+
+The migration container:
+- Uses the same production image (no dev dependencies needed)
+- Connects to the database using `DATABASE_URL`
+- Exits after all pending migrations are applied
+- Is isolated from the running app container
 
 ## AWS EC2 Deployment
 
@@ -71,11 +103,14 @@ export JWT_SECRET="$(openssl rand -hex 32)"
 export NVIDIA_API_KEY="nvapi-..."
 export CORS_ORIGIN="https://your-domain.com"
 
-# 5. Deploy
-cd deploy
-docker compose -f docker-compose.prod.yml up -d
+# 5. Build and run migrations
+docker compose -f deploy/docker-compose.prod.yml build
+docker compose -f deploy/docker-compose.prod.yml --profile migrate run --rm migrate
 
-# 6. Set up Nginx reverse proxy
+# 6. Start the app
+docker compose -f deploy/docker-compose.prod.yml up -d app
+
+# 7. Set up Nginx reverse proxy
 # Copy deploy/nginx.conf to /etc/nginx/nginx.conf
 # Replace "your-domain.com" and SSL certificate paths
 # Run deploy/init-letsencrypt.sh for SSL
